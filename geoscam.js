@@ -1,8 +1,8 @@
 var express = require('express');
 var app = express();
 
-/* var mongoose = require('mongoose');
-mongoose.connect('mongodb://mongodb:27017');
+var mongoose = require('mongoose');
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/HelloMongoose');
 
 // http://mongoosejs.com/docs/guide.html
 
@@ -24,7 +24,6 @@ db.once('open', function() {
         console.log(scam1.name); // 'Silence'
     });
 });
-*/
 
 app.get('/', function(req, res) {
     res.send('Hello World! GitHub deployment test.')

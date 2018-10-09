@@ -27,7 +27,7 @@ db.once('open', function() {
 */
 
 app.get('/', function(req, res) {
-    res.send('Hello World!')
+    res.send('Hello World! GitHub deployment test.')
     console.log(JSON.stringify(req.headers))
     console.log(JSON.stringify(req.ip))
 })

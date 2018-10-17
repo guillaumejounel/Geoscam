@@ -91,19 +91,24 @@ function getNewToken(oAuth2Client) {
         output: process.stdout,
     });
     rl.question('Enter the code from that page here: ', (code) => {
-        rl.close();
-        oAuth2Client.getToken(code, (err, token) => {
-            if (err) return console.error('Error retrieving access token', err);
-            oAuth2Client.setCredentials(token);
-            // Store the token to disk for later program executions
-            fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-                if (err) return console.error(err);
-                console.log('Token stored to', TOKEN_PATH);
-            });
+        rl.close()
+        setNewToken(oAuth2Client, code)
+    });
+    console.log("code:"+code)
+    console.log("Looks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"<TOKEN>\")'")
+}
+
+function setNewToken(oAuth2Client, code) {
+    oAuth2Client.getToken(code, (err, token) => {
+        if (err) return console.error('Error retrieving access token', err);
+        oAuth2Client.setCredentials(token);
+        // Store the token to disk for later program executions
+        fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+            if (err) return console.error(err);
+            console.log('Token stored to', TOKEN_PATH);
         });
     });
 }
-
 
 //TODO Iterate on all messages
 /**
@@ -160,5 +165,8 @@ module.exports = {
     },
     getToken: function() {
         getNewToken(oAuth2Client)
+    },
+    setToken: function(code) {
+        setNewToken(oAuth2Client, code)
     }
 }

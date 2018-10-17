@@ -1,35 +1,13 @@
-var express = require('express');
-var app = express();
+let express = require('express')
+let app = express()
+let fs = require('fs');
 
-var mongoose = require('mongoose');
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/HelloMongoose');
+let crawler = require('./crawler')
+let db = require('./db')
+let email = require('./email')
 
-// http://mongoosejs.com/docs/guide.html
-
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-
-db.once('open', function() {
-    console.log("we're connected!")
-
-    var scamSchema = mongoose.Schema({
-        name: String
-    });
-
-    var Scam = mongoose.model('Scam', scamSchema);
-    var scam1 = new Scam({ name: 'Scammer Pro' });
-
-    scam1.save(function (err, scam1) {
-        if (err) return console.error(err);
-        console.log(scam1.name); // 'Silence'
-    });
-});
-
-app.get('/', function(req, res) {
-    res.send('Hello World! GitHub deployment test.')
-    console.log(JSON.stringify(req.headers))
-    console.log(JSON.stringify(req.ip))
-})
+// crawler.crawl()
+// email.sendEmail(process.env.EMAIL_DEV)
 
 /* TODO :
  1. Scrap scam websites, indicate email/kind of scam/not contacted/date
@@ -41,4 +19,24 @@ app.get('/', function(req, res) {
  6. Deploy!
  7. Visualize scam origins... */
 
-app.listen(process.env.PORT || 5000, () => console.log('http://localhost:3000'))
+
+app.get('/', function(req, res) {
+     res.send('Hello World!')
+     // console.log("1--- " + JSON.stringify(req.headers))
+     //console.log("2--- " + JSON.stringify(req.ip))
+     //console.log(req.headers["host"]) //for localhost
+
+     // let ip = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+     //     req.connection.remoteAddress ||
+     //     req.socket.remoteAddress ||
+     //     req.connection.socket.remoteAddress
+})
+
+app.get("/test/:tagId", function(req, res) {
+    var img = fs.readFileSync('./IMG_5021.JPG');
+     res.writeHead(200, {'Content-Type': 'image/gif' });
+     res.end(img, 'binary');
+     console.log(req.params.tagId + " image loaded on host "+req.headers["host"])
+})
+
+app.listen(process.env.PORT || 5000, () => console.log("GeoScam Launched!"))

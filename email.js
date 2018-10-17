@@ -94,8 +94,8 @@ function getNewToken(oAuth2Client) {
         rl.close()
         setNewToken(oAuth2Client, code)
     });
-    console.log("code:"+code)
-    console.log("Looks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"<TOKEN>\")'")
+    if (code === "undefined")
+        console.log("Looks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"<TOKEN>\")'")
 }
 
 function setNewToken(oAuth2Client, code) {

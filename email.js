@@ -1,4 +1,4 @@
-// Set up token.json: node -r dotenv/config email.js
+
 let db = require('./db')
 
 const readline = require('readline');
@@ -11,8 +11,8 @@ const SCOPES = ['https://mail.google.com/',
 
 const oAuth2Client = new google.auth.OAuth2(process.env.GMAIL_CLI_ID, process.env.GMAIL_CLI_SECRET, 'urn:ietf:wg:oauth:2.0:oob');
 
-Array.prototype.randItem = function () {
-    return this[Math.floor(Math.random() * this.length)]
+function randItem(array) {
+    return array[Math.floor(Math.random() * array.length)]
 }
 
 const fields = {
@@ -33,7 +33,7 @@ const fields = {
 
 class Email {
     constructor(to) {
-        this.message = fields["intro"].randItem()+",<br/><br/>" + fields["relative"].randItem() + " m'a "+fields["verb"].randItem() + " votre "+fields["address"].randItem()+" "+fields["concerning"].randItem()+" "+fields["post"].randItem()+".<br/><br/>" + fields["dunno"].randItem() + ", " + fields["canu"].randItem()+" " + fields["explain2me"].randItem() +" comment "+fields["do"].randItem() + " pour " + fields["transaction"].randItem() + "?<br/><br/>Merci,<br/><br/>" + fields["closure"].randItem() + ",<br/>"+process.env.APP_FULLNAME
+        this.message = randItem(fields["intro"])+",<br/><br/>" + randItem(fields["relative"]) + " m'a " +randItem(fields["verb"]) + " votre " + randItem(fields["address"])+" " + randItem(fields["concerning"])+" " + randItem(fields["post"])+".<br/><br/>" + randItem(fields["dunno"]) + ", " + randItem(fields["canu"])+" " + randItem(fields["explain2me"]) +" comment " +randItem(fields["do"]) + " pour " + randItem(fields["transaction"]) + "?<br/><br/>Merci,<br/><br/>" + randItem(fields["closure"]) + ",<br/>" +process.env.APP_FULLNAME
         this.subject = "Annonce en ligne"
         this.email = ["Content-Type: text/html; charset=\"UTF-8\"\n", "MIME-Version: 1.0\n",
         "Content-Transfer-Encoding: base64\n" + "to: ", to, "\n", "from: ", process.env.APP_FULLNAME, " <",
@@ -112,43 +112,42 @@ function setNewToken(oAuth2Client, code) {
     return
 }
 
-//TODO Iterate on all messages
 /**
-* Get the recent email from your Gmail account
+* Get the emails from your Gmail inbox, save IPs and archive them
 *
 * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
 */
 function getRecentEmail(auth) {
     const gmail = google.gmail({version: 'v1', auth});
     // Only get the recent email - 'maxResults' parameter
-    gmail.users.messages.list({auth: auth, userId: 'me', maxResults: 1,}, function(err, response) {
+    gmail.users.messages.list({auth: auth, userId: 'me', labelIds: ["INBOX"]}, function(err, response) {
         if (err) return console.error('The API returned an error: ' + err);
+        for (let message in response['data']['messages']) {
+            // Get the message id which we will need to retrieve tha actual message next.
+            let message_id = response['data']['messages'][message]['id'];
+            // retrieve the actual message using the message id
+            gmail.users.messages.get({auth: auth, userId: 'me', 'id': message_id}, function(err, response) {
+                if (err) return console.error('The API returned an error: ' + err);
 
-        // Get the message id which we will need to retrieve tha actual message next.
-        let message_id = response['data']['messages'][0]['id'];
+                text = ""
+                for (let txt in response['data']["payload"]["headers"]){
+                    if (response['data']["payload"]["headers"][txt]["name"] == "Received")
+                    text += response['data']["payload"]["headers"][txt]["value"]
+                    if(response['data']["payload"]["headers"][txt]["name"] == "Subject")
+                    console.log("Subject = " + response['data']["payload"]["headers"][txt]["value"])
+                    if(response['data']["payload"]["headers"][txt]["name"] == "X-Mailer")
+                    console.log("X-Mailer = " + response['data']["payload"]["headers"][txt]["value"])
+                }
+                let myRegexp = /[^\.](\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)/g
+                let match = myRegexp.exec(text);
+                while (match != null) {
+                    console.log("IP = " +match[1])
+                    match = myRegexp.exec(text);
+                }
+                // gmail.users.messages.modify({'userId': 'me', 'id': message_id, resource: {'addLabelIds': [], 'removeLabelIds': ["INBOX", "UNREAD"]}});
+            });
+        }
 
-        // retrieve the actual message using the message id
-        gmail.users.messages.get({auth: auth, userId: 'me', 'id': message_id}, function(err, response) {
-            if (err) return console.error('The API returned an error: ' + err);
-
-            text = ""
-            for (let txt in response['data']["payload"]["headers"]){
-                if (response['data']["payload"]["headers"][txt]["name"] == "Received")
-                text += response['data']["payload"]["headers"][txt]["value"]
-                if(response['data']["payload"]["headers"][txt]["name"] == "Subject")
-                console.log("Subject = " + response['data']["payload"]["headers"][txt]["value"])
-                if(response['data']["payload"]["headers"][txt]["name"] == "X-Mailer")
-                console.log("X-Mailer = " + response['data']["payload"]["headers"][txt]["value"])
-            }
-            let myRegexp = /[^\.](\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)/g
-            let match = myRegexp.exec(text);
-            while (match != null) {
-                console.log("IP = " +match[1])
-                match = myRegexp.exec(text);
-            }
-            //gmail.users.messages.delete({userId: 'me', 'id': message_id})
-            // gmail.users.messages.modify({'userId': 'me', 'id': message_id, resource: {'addLabelIds': [], 'removeLabelIds': ["INBOX", "UNREAD"]}});
-        });
     })
 }
 

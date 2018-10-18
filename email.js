@@ -92,10 +92,11 @@ function getNewToken(oAuth2Client) {
     });
     rl.question('Enter the code from that page here: ', (code) => {
         rl.close()
-        setNewToken(oAuth2Client, code)
+        if (typeof code === "undefined" || code == "")
+            console.log("\nLooks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"PASTE_TOKEN_HERE\")'")
+        else
+            setNewToken(oAuth2Client, code)
     });
-    if (code === "undefined")
-        console.log("Looks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"<TOKEN>\")'")
 }
 
 function setNewToken(oAuth2Client, code) {

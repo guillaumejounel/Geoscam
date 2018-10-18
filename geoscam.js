@@ -39,4 +39,6 @@ app.get("/test/:tagId", function(req, res) {
      console.log(req.params.tagId + " image loaded on host "+req.headers["host"])
 })
 
-app.listen(process.env.PORT || 5000, () => console.log("GeoScam Launched!"))
+email.checkToken()
+
+app.listen(process.env.PORT || 5000)

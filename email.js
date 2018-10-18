@@ -1,23 +1,24 @@
 // Set up token.json: node -r dotenv/config email.js
 
-let fs = require('fs');
-let readline = require('readline');
-let {google} = require('googleapis');
+const fs = require('fs');
+const readline = require('readline');
+const {google} = require('googleapis');
+const readlineSync = require('readline-sync');
 
-let SCOPES = ['https://mail.google.com/',
+const SCOPES = ['https://mail.google.com/',
     'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/gmail.compose',
     'https://www.googleapis.com/auth/gmail.send'];
 
-let TOKEN_PATH = 'token.json';
+const TOKEN_PATH = 'token.json';
 
-let oAuth2Client = new google.auth.OAuth2(process.env.GMAIL_CLI_ID, process.env.GMAIL_CLI_SECRET, 'urn:ietf:wg:oauth:2.0:oob');
+const oAuth2Client = new google.auth.OAuth2(process.env.GMAIL_CLI_ID, process.env.GMAIL_CLI_SECRET, 'urn:ietf:wg:oauth:2.0:oob');
 
 Array.prototype.randItem = function () {
     return this[Math.floor(Math.random() * this.length)]
 }
 
-let fields = {
+const fields = {
     intro: ["Bonjour", "Bonsoir"],
     relative: ["Ma fille", "Mon fils", "Ma compagne", "Mon petit-fils", "Ma petite-fille", "Ma femme"],
     verb: ["transmis", "communiqué", "fait parvenir", "passé", "renseigné", "donné"],
@@ -46,7 +47,7 @@ class Email {
         .replace(/=+$/, '');
     }
     send(auth) {
-        let gmail = google.gmail({version: 'v1', auth});
+        const gmail = google.gmail({version: 'v1', auth});
         gmail.users.messages.send({
             auth: auth,
             userId: 'me',
@@ -81,22 +82,16 @@ function authorize(callback) {
 * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
 */
 function getNewToken(oAuth2Client) {
-    let authUrl = oAuth2Client.generateAuthUrl({
+    const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: SCOPES,
     });
-    console.log('Authorize this app by visiting this url:', authUrl);
-    let rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-    rl.question('Enter the code from that page here: ', (code) => {
-        rl.close()
-        if (typeof code === "undefined" || code == "")
-            console.log("\nLooks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"PASTE_TOKEN_HERE\")'")
-        else
-            setNewToken(oAuth2Client, code)
-    });
+
+    let code = readlineSync.question('Authorize your app by visiting this url:'+ authUrl+ '\nEnter the code from that page here: ');
+    if (code == "")
+        console.log("\nLooks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"PASTE_TOKEN_HERE\")'")
+    else
+        setNewToken(oAuth2Client, code)
 }
 
 function setNewToken(oAuth2Client, code) {
@@ -111,6 +106,12 @@ function setNewToken(oAuth2Client, code) {
     });
 }
 
+function checkToken(oAuth2Client) {
+    fs.readFile(TOKEN_PATH, (err, token) => {
+        if (err) { getNewToken(oAuth2Client) }
+    });
+}
+
 //TODO Iterate on all messages
 /**
 * Get the recent email from your Gmail account
@@ -118,7 +119,7 @@ function setNewToken(oAuth2Client, code) {
 * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
 */
 function getRecentEmail(auth) {
-    let gmail = google.gmail({version: 'v1', auth});
+    const gmail = google.gmail({version: 'v1', auth});
     // Only get the recent email - 'maxResults' parameter
     gmail.users.messages.list({auth: auth, userId: 'me', maxResults: 1,}, function(err, response) {
         if (err) {
@@ -127,7 +128,7 @@ function getRecentEmail(auth) {
         }
 
         // Get the message id which we will need to retreive tha actual message next.
-        var message_id = response['data']['messages'][0]['id'];
+        let message_id = response['data']['messages'][0]['id'];
 
         // Retreive the actual message using the message id
         gmail.users.messages.get({auth: auth, userId: 'me', 'id': message_id}, function(err, response) {
@@ -144,8 +145,8 @@ function getRecentEmail(auth) {
                 if(response['data']["payload"]["headers"][txt]["name"] == "X-Mailer")
                 console.log("X-Mailer = " + response['data']["payload"]["headers"][txt]["value"])
             }
-            var myRegexp = /[^\.](\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)/g
-            var match = myRegexp.exec(text);
+            let myRegexp = /[^\.](\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)/g
+            let match = myRegexp.exec(text);
             while (match != null) {
                 console.log("IP = " +match[1])
                 match = myRegexp.exec(text);
@@ -169,5 +170,8 @@ module.exports = {
     },
     setToken: function(code) {
         setNewToken(oAuth2Client, code)
+    },
+    checkToken: function(code) {
+        checkToken(oAuth2Client)
     }
 }

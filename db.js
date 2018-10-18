@@ -1,31 +1,56 @@
-var mongoose = require('mongoose');
+
+const mongoose = require('mongoose');
+
 mongoose.set('useCreateIndex', true);
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/Contacts', { useNewUrlParser: true });
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/GeoScam', { useNewUrlParser: true });
 
 // http://mongoosejs.com/docs/guide.html
 
-var db = mongoose.connection;
+const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 
-var schema = mongoose.Schema({
+const tokenSchema = mongoose.Schema({token: Object});
+const Token = mongoose.model('Token', tokenSchema);
+
+let schema = mongoose.Schema({
   email: {type: String, required: true, unique: true},
   contacted: {type: Boolean, default: false},
 });
 
+function storeToken(token, next) {
+    let mytoken = new Token({token: token});
+    Token.deleteMany({}, function (err) {
+        if (err) next(err)
+    }).then(() => {
+        mytoken.save().then(()=> {
+            next(null)
+        }, function(err) {
+            if (err) next(err)
+        });
+    })
+}
 
-db.once('open', function() {
-    var Scam = mongoose.model('Scam', schema);
-    var scam1 = new Scam({ email: 'Scammer Pro' });
-    var scam2 = new Scam({ email: 'Scammer Pro', contacted: true });
+function retrieveToken(next) {
+    Token.findOne({}, function (err, token) {
+        if (err) {
+            next(err)
+        }
+        else {
+            if (token == null) {
+                next(new Error("No token stored. You may want to run this:\n"+
+                "node -r dotenv/config -e 'require(\"./email\").getToken()'"))
+            } else {
+                next(null, token.token)
+            }
+        }
+    })
+}
 
-    // scam1.save(function (err, scam1) {
-    //     if (err) return console.error(err);
-    //     console.log(scam1.email); // 'Silence'
-    // });
-    //
-    // scam2.save(function (err, scam2) {
-    //     if (err) return console.error(err);
-    //     console.log(scam2.email); // 'Silence'
-    // });
-
-});
+module.exports = {
+  storeToken: function (token, next) {
+      storeToken(token, next)
+  },
+  retrieveToken: function (next) {
+      retrieveToken(next)
+  }
+};

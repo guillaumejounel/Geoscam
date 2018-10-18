@@ -39,6 +39,8 @@ app.get("/test/:tagId", function(req, res) {
      console.log(req.params.tagId + " image loaded on host "+req.headers["host"])
 })
 
-email.checkToken()
+db.retrieveToken((err)=>{
+    if(err) return console.error(err)
+})
 
 app.listen(process.env.PORT || 5000)

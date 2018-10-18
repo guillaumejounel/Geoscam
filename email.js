@@ -66,14 +66,14 @@ class Email {
 */
 function authorize(callback) {
     // Check if we have previously stored a token.
-    fs.readFile(TOKEN_PATH, (err, token) => {
-        if (err) { console.log("No token.json file provided. You may want to run this first:\nnode -r dotenv/config -e 'require(\"./email\").getToken()'"); return }
+    let token = checkToken()
+    if (token) {
         oAuth2Client.setCredentials(JSON.parse(token));
         if (typeof(callback) == "object")
             callback.send(oAuth2Client)
         else
             callback(oAuth2Client)
-    });
+    }
 }
 
 /**
@@ -108,6 +108,17 @@ function setNewToken(oAuth2Client, code) {
             if (err) return console.error(err);
             console.log('Token stored to', TOKEN_PATH);
         });
+    });
+}
+
+function checkToken() {
+    fs.readFile(TOKEN_PATH, (err, token) => {
+        if (err) {
+            console.log("No token.json file provided. You may want to run this first:\n"+
+                "node -r dotenv/config -e 'require(\"./email\").getToken()'");
+            return false
+        }
+        return token
     });
 }
 
@@ -169,5 +180,8 @@ module.exports = {
     },
     setToken: function(code) {
         setNewToken(oAuth2Client, code)
+    },
+    checkToken: function() {
+        checkToken()
     }
 }

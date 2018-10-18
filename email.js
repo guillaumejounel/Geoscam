@@ -3,7 +3,6 @@
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
-const readlineSync = require('readline-sync');
 
 const SCOPES = ['https://mail.google.com/',
     'https://www.googleapis.com/auth/gmail.modify',
@@ -86,12 +85,18 @@ function getNewToken(oAuth2Client) {
         access_type: 'offline',
         scope: SCOPES,
     });
-
-    let code = readlineSync.question('Authorize your app by visiting this url:'+ authUrl+ '\nEnter the code from that page here: ');
-    if (code == "")
-        console.log("\nLooks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"PASTE_TOKEN_HERE\")'")
-    else
-        setNewToken(oAuth2Client, code)
+    console.log('Authorize this app by visiting this url:', authUrl);
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+    rl.question('Enter the code from that page here: ', (code) => {
+        rl.close()
+        if (typeof code === "undefined" || code == "")
+            console.log("\nLooks like you haven't entered the code. You may want to do it using:\nnode -r dotenv/config -e 'require(\"./email\").setToken(\"PASTE_TOKEN_HERE\")'")
+        else
+            setNewToken(oAuth2Client, code)
+    });
 }
 
 function setNewToken(oAuth2Client, code) {
@@ -103,12 +108,6 @@ function setNewToken(oAuth2Client, code) {
             if (err) return console.error(err);
             console.log('Token stored to', TOKEN_PATH);
         });
-    });
-}
-
-function checkToken(oAuth2Client) {
-    fs.readFile(TOKEN_PATH, (err, token) => {
-        if (err) { getNewToken(oAuth2Client) }
     });
 }
 
@@ -170,8 +169,5 @@ module.exports = {
     },
     setToken: function(code) {
         setNewToken(oAuth2Client, code)
-    },
-    checkToken: function(code) {
-        checkToken(oAuth2Client)
     }
 }

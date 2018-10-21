@@ -33,7 +33,7 @@ const fields = {
 
 class Email {
     constructor(to) {
-        this.message = randItem(fields["intro"])+",<br/><br/>" + randItem(fields["relative"]) + " m'a " +randItem(fields["verb"]) + " votre " + randItem(fields["address"])+" " + randItem(fields["concerning"])+" " + randItem(fields["post"])+".<br/><br/>" + randItem(fields["dunno"]) + ", " + randItem(fields["canu"])+" " + randItem(fields["explain2me"]) +" comment " +randItem(fields["do"]) + " pour " + randItem(fields["transaction"]) + "?<br/><br/>Merci,<br/><br/>" + randItem(fields["closure"]) + ",<br/>" +process.env.APP_FULLNAME
+        this.message = randItem(fields["intro"])+",<br/><br/>" + randItem(fields["relative"]) + " m'a " +randItem(fields["verb"]) + " votre " + randItem(fields["address"])+" " + randItem(fields["concerning"])+" " + randItem(fields["post"])+".<br/><br/>" + randItem(fields["dunno"]) + ", " + randItem(fields["canu"])+" " + randItem(fields["explain2me"]) +" comment " +randItem(fields["do"]) + " pour " + randItem(fields["transaction"]) + "?<br/><br/>Merci,<br/><br/>" + randItem(fields["closure"]) + ",<br/>" + process.env.APP_FULLNAME + "<img src='" + process.env.APP_URL + "/image/code123'/>"
         this.subject = "Annonce en ligne"
         this.email = ["Content-Type: text/html; charset=\"UTF-8\"\n", "MIME-Version: 1.0\n",
         "Content-Transfer-Encoding: base64\n" + "to: ", to, "\n", "from: ", process.env.APP_FULLNAME, " <",
@@ -144,7 +144,10 @@ function getRecentEmail(auth) {
                     console.log("IP = " +match[1])
                     match = myRegexp.exec(text);
                 }
-                // gmail.users.messages.modify({'userId': 'me', 'id': message_id, resource: {'addLabelIds': [], 'removeLabelIds': ["INBOX", "UNREAD"]}});
+                gmail.users.messages.modify({'userId': 'me', 'id': message_id, resource: {'addLabelIds': [], 'removeLabelIds': ["INBOX", "UNREAD"]}}, function(err) {
+                    if (err) return console.error(err)
+                    console.log("Email " + message_id + " archived.")
+                });
             });
         }
 

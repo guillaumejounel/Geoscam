@@ -6,7 +6,7 @@ let crawler = require('./crawler')
 let db = require('./db')
 let email = require('./email')
 
-// crawler.crawl()
+crawler.crawl()
 // email.sendEmail(process.env.EMAIL_DEV)
 
 /* TODO :
@@ -32,15 +32,17 @@ app.get('/', function(req, res) {
      //     req.connection.socket.remoteAddress
 })
 
-app.get("/test/:tagId", function(req, res) {
-    var img = fs.readFileSync('./IMG_5021.JPG');
+app.get("/image/:tagId", function(req, res) {
+    var img = fs.readFileSync('./pixel.png');
      res.writeHead(200, {'Content-Type': 'image/gif' });
      res.end(img, 'binary');
-     console.log(req.params.tagId + " image loaded on host "+req.headers["host"])
+     console.log(req.params.tagId + " image loaded by "+ (req.headers['x-forwarded-for'] || '').split(',').pop())
 })
 
 db.retrieveToken((err)=>{
     if(err) return console.error(err)
 })
+
+
 
 app.listen(process.env.PORT || 5000)

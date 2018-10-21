@@ -1,27 +1,35 @@
-var request = require('request')
-var url = 'https://www.signal-arnaques.com/scam-using-paypal?ajax=scam-table' // input your url here
+let request = require('request')
+let db = require("./db")
+let url = process.env.CRAWL_URL
 
 // use a timeout value of 10 seconds
-var timeoutInMilliseconds = 10*1000
-var opts = {
-  url: url,
-  timeout: timeoutInMilliseconds
+let timeoutInMilliseconds = 10*1000
+
+let opts = {
+    url: url,
+    timeout: timeoutInMilliseconds
 }
 
 module.exports = {
-  crawl: function () {
-      request(opts, function (err, res, body) {
-        if (err) {
-          console.dir(err)
-          return
-        }
-        var statusCode = res.statusCode
-        var myRegexp = /\/scam\/view\/\d+">(.*?@.*?\..*?)<\/a>/g
-        var match = myRegexp.exec(body);
-        while (match != null) {
-          console.log(match[1])
-          match = myRegexp.exec(body);
-        }
-      })
-  }
+    crawl: function () {
+        request(opts, function (err, res, body) {
+            if (err) return console.error(err)
+
+            let myRegexp = /\/scam\/view\/.+">(.*?@.*?\..*?)<\/a>/g
+            let match = myRegexp.exec(body);
+            console.log("Crawler req: " + res.statusCode + " " + process.env.CRAWL_URL)
+
+            let nbEmails = 0
+            while (match != null) {
+                let email = match[1]
+                db.saveScammer(email, (err) => {
+                    if (err) { if (err.code != 11000) return console.error(err); return }
+                    console.log(email + " saved to database")
+                    nbEmails += 1
+                })
+                match = myRegexp.exec(body);
+            }
+            console.log(nbEmails + " email addresses crawled!")
+        })
+    }
 };

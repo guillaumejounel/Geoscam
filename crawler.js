@@ -15,13 +15,13 @@ let opts = {
 //TODO: Alert when no new emails for x hours
 
 module.exports = {
-    crawl: function () {
+    crawl: function (url) {
         request(opts, function (err, res, body) {
             if (err) return console.error(err)
 
             let myRegexp = /\/scam\/view\/.+">(.*?@.*?\..*?)<\/a>/g
             let match = myRegexp.exec(body);
-            console.log("Crawler req: " + res.statusCode + " " + process.env.CRAWL_URL)
+            console.log("Crawler req: " + res.statusCode + " " + url)
 
             let nbEmails = 0
             while (match != null) {

@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 console.log("Scheduler launched - " + Date())
-require("./crawler").crawl()
+require("./crawler").crawl(process.env.CRAWL_URL)
 setTimeout(()=>{ require("./db").emailScammers() }, 5*1000)
 setTimeout(()=>{ require("./email").checkInbox() }, 10*1000)
 setTimeout(()=>{

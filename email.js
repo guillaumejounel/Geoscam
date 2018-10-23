@@ -4,9 +4,9 @@ const readline = require('readline');
 const {google} = require('googleapis');
 
 const SCOPES = ['https://mail.google.com/',
-    'https://www.googleapis.com/auth/gmail.modify',
-    'https://www.googleapis.com/auth/gmail.compose',
-    'https://www.googleapis.com/auth/gmail.send'];
+'https://www.googleapis.com/auth/gmail.modify',
+'https://www.googleapis.com/auth/gmail.compose',
+'https://www.googleapis.com/auth/gmail.send'];
 
 const oAuth2Client = new google.auth.OAuth2(process.env.GMAIL_CLI_ID, process.env.GMAIL_CLI_SECRET, 'urn:ietf:wg:oauth:2.0:oob');
 
@@ -71,7 +71,7 @@ function authorize(callback) {
     // Check if we have previously stored a token.
     db.retrieveToken((err, token) => {
         if (err)return console.error(err)
-        oAuth2Client.setCredentials(token);
+            oAuth2Client.setCredentials(token);
         if (typeof(callback) == "object")
             callback.send(oAuth2Client)
         else
@@ -106,12 +106,12 @@ function getNewToken(oAuth2Client) {
 function setNewToken(oAuth2Client, code) {
     oAuth2Client.getToken(code, (err, token) => {
         if (err) return console.error('Error retrieving access token', err);
-        oAuth2Client.setCredentials(JSON.stringify(token));
+            oAuth2Client.setCredentials(JSON.stringify(token));
 
         // Store the token to db for later program executions
         db.storeToken(token, (err) => {
             if (err) return console.error(err)
-            console.log("Token stored to database")
+                console.log("Token stored to database")
         })
     })
     return
@@ -124,6 +124,7 @@ function setNewToken(oAuth2Client, code) {
 */
 function getRecentEmail(auth) {
     const gmail = google.gmail({version: 'v1', auth});
+
     // Only get the recent email - 'maxResults' parameter
     gmail.users.messages.list({auth: auth, userId: 'me', labelIds: ["INBOX"]}, function(err, response) {
         if (err) return console.error('The API returned an error: ' + err);
@@ -133,25 +134,45 @@ function getRecentEmail(auth) {
             // retrieve the actual message using the message id
             gmail.users.messages.get({auth: auth, userId: 'me', 'id': message_id}, function(err, response) {
                 if (err) return console.error('The API returned an error: ' + err);
-
                 text = ""
+                let emailMatch = /[a-zA-Z0-9_\-\.]+@([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}/g
+                let emailAddress, xmailer;
                 for (let txt in response['data']["payload"]["headers"]){
-                    if (response['data']["payload"]["headers"][txt]["name"] == "Received")
-                    text += response['data']["payload"]["headers"][txt]["value"]
-                    if(response['data']["payload"]["headers"][txt]["name"] == "Subject")
-                    console.log("Subject = " + response['data']["payload"]["headers"][txt]["value"])
+                    // if (response['data']["payload"]["headers"][txt]["name"] == "Received")
+                    // text += response['data']["payload"]["headers"][txt]["value"]
+                    if(response['data']["payload"]["headers"][txt]["name"] == "From")
+                    emailAddress = emailMatch.exec(response['data']["payload"]["headers"][txt]["value"])[0]
                     if(response['data']["payload"]["headers"][txt]["name"] == "X-Mailer")
-                    console.log("X-Mailer = " + response['data']["payload"]["headers"][txt]["value"])
+                    xmailer = response['data']["payload"]["headers"][txt]["value"]
                 }
-                let myRegexp = /[^\.](\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)/g
-                let match = myRegexp.exec(text);
-                while (match != null) {
-                    console.log("IP = " +match[1])
-                    match = myRegexp.exec(text);
-                }
+
+                //if scammer not tracked yet, resend a message with url
+                db.isScammerEmail(emailAddress, xmailer, (id)=>{
+                    let encodedEmail = Buffer.from(["Content-Type: text/html; charset=\"UTF-8\"\n", "MIME-Version: 1.0\n",
+                    "Content-Transfer-Encoding: base64\n" + "to: ", emailAddress, "\n", "from: ", process.env.APP_FULLNAME, " <",
+                    process.env.APP_EMAIL, ">\n", "subject: ", "RE: Annonce en ligne", "\n\n", "Bonjour,<br/><br/>Je n'ai pas bien compris votre réponse, est-ce que <a href='" + process.env.APP_URL + "/image/" + id + "'>cela</a> vous convient ?<br/><br/>Merci,<br/>" + process.env.APP_FULLNAME].join('')).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+                    gmail.users.messages.send({
+                        auth: auth,
+                        userId: 'me',
+                        resource: { raw: encodedEmail }
+                    }, function(err, response) {
+                        if (err) return console.error(err)
+                        console.log("Answer sent to " + emailAddress)
+                    });
+                })
+
+                // // IP ADDRESSES
+                // let myRegexp = /[^\.](\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)/g
+                // let match = myRegexp.exec(text);
+                // while (match != null) {
+                //     console.log("IP = " +match[1])
+                //     match = myRegexp.exec(text);
+                // }
+
                 gmail.users.messages.modify({'userId': 'me', 'id': message_id, resource: {'addLabelIds': [], 'removeLabelIds': ["INBOX", "UNREAD"]}}, function(err) {
                     if (err) return console.error(err)
-                    console.log("Email " + message_id + " archived.")
+                    console.log("Email " + message_id + " from " + emailAddress + " archived.")
                 });
             });
         }

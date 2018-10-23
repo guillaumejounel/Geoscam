@@ -19,10 +19,12 @@ const scammerSchema = mongoose.Schema({
     email: {type: String, unique: true},
     contacted: {type: Boolean, default: false},
     tracked: {type: Boolean, default: false},
+    answered: {type: Boolean, default: false},
     date: Date,
     ip: String,
     isp: String,
     agent: String,
+    mailer: String,
     lang: String,
     loc: {
         type: { type: String },
@@ -58,7 +60,7 @@ function emailScammers() {
     });
 }
 
-function checkScammer(id, then) {
+function isScammerId(id, then) {
     Scammer.countDocuments({_id: mongoose.Types.ObjectId(id), tracked: false}).exec(function(err, count) {
         if(err) return console.error(err)
         if(count > 0){
@@ -67,8 +69,23 @@ function checkScammer(id, then) {
     })
 }
 
+function isScammerEmail(email, xmailer, then) {
+    Scammer.countDocuments({email: email, tracked: false, answered: false}).exec(function(err, count) {
+        if(err) return console.error(err)
+        if(count > 0){
+            //Set answered=true and mailer
+            Scammer.findOneAndUpdate({email: email}, {$set:
+                {answered: true, mailer: xmailer}
+            }).exec((err, res)=> {
+                if (err) return console.error(err)
+                then(res._id)
+            });
+        }
+    })
+}
+
 function trackScammer(id, agent, lang, ip) {
-    console.log("req = "+'http://ip-api.com/json/'+"67.163.57.254")
+    console.log("req = "+'http://ip-api.com/json/'+ip)
     http.get(process.env.IP_LOCATOR_URL + ip, (resp) => {
         let data = '';
         resp.on('data', (chunk) => { data += chunk; });
@@ -127,6 +144,7 @@ function retrieveToken(next) {
     })
 }
 
+
 module.exports = {
     storeToken: function(token, next) {
         storeToken(token, next)
@@ -140,8 +158,11 @@ module.exports = {
     emailScammers: function() {
         emailScammers()
     },
-    checkScammer: function(id, then) {
-        checkScammer(id, then)
+    isScammerId: function(id, then) {
+        isScammerId(id, then)
+    },
+    isScammerEmail: function(email, xmailer, then) {
+        isScammerEmail(email, xmailer, then)
     },
     trackScammer: function(id, agent, lang, ip) {
         trackScammer(id, agent, lang, ip)

@@ -33,7 +33,7 @@ app.get('/', function(req, res) {
 })
 
 app.get("/image/:tagId", function(req, res) {
-    db.checkScammer(req.params.tagId, ()=> {
+    db.isScammerId(req.params.tagId, ()=> {
         var img = fs.readFileSync('./pixel.png')
         res.writeHead(200, {'Content-Type': 'image/gif' })
         res.end(img, 'binary')

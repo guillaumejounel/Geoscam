@@ -141,9 +141,9 @@ function getRecentEmail(auth) {
                     // if (response['data']["payload"]["headers"][txt]["name"] == "Received")
                     // text += response['data']["payload"]["headers"][txt]["value"]
                     if(response['data']["payload"]["headers"][txt]["name"] == "From")
-                    emailAddress = emailMatch.exec(response['data']["payload"]["headers"][txt]["value"])[0]
+                        emailAddress = emailMatch.exec(response['data']["payload"]["headers"][txt]["value"])[0]
                     if(response['data']["payload"]["headers"][txt]["name"] == "X-Mailer")
-                    xmailer = response['data']["payload"]["headers"][txt]["value"]
+                        xmailer = response['data']["payload"]["headers"][txt]["value"]
                 }
 
                 //if scammer not tracked yet, resend a message with url
@@ -172,7 +172,7 @@ function getRecentEmail(auth) {
 
                 gmail.users.messages.modify({'userId': 'me', 'id': message_id, resource: {'addLabelIds': [], 'removeLabelIds': ["INBOX", "UNREAD"]}}, function(err) {
                     if (err) return console.error(err)
-                    console.log("Email " + message_id + " from " + emailAddress + " archived.")
+                        console.log("Email " + message_id + " from " + emailAddress + " archived.")
                 });
             });
         }

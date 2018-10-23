@@ -28,6 +28,8 @@ db.retrieveToken((err)=>{
 })
 
 // ROUTINE
-crawler.crawl().then(db.emailScammers().then(email.checkInbox()))
+// crawler.crawl()
+// db.emailScammers()
+// email.checkInbox()
 
 app.listen(process.env.PORT || 5000)

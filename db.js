@@ -70,15 +70,15 @@ function isScammerId(id, then) {
 }
 
 function isScammerEmail(email, xmailer, then) {
-    Scammer.countDocuments({email: email, tracked: false, answered: false}).exec(function(err, count) {
+    Scammer.countDocuments({email: email, answered: false}).exec(function(err, count) {
         if(err) return console.error(err)
         if(count > 0){
             //Set answered=true and mailer
             Scammer.findOneAndUpdate({email: email}, {$set:
                 {answered: true, mailer: xmailer}
             }).exec((err, res)=> {
-                if (err) return console.error(err)
-                then(res._id)
+                if(err) return console.error(err)
+                if(!res.tracked) then(res._id)
             });
         }
     })
@@ -156,12 +156,7 @@ module.exports = {
         saveScammer(email, next)
     },
     emailScammers: function() {
-        return new Promise(resolve => {
-            setTimeout(() => {
-              emailScammers()
-              resolve();
-            }, 1000);
-        });
+        emailScammers()
     },
     isScammerId: function(id, then) {
         isScammerId(id, then)

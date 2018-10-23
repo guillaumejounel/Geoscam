@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-let crawler = require('./crawler')
-let db = require('./db')
-let email = require('./email')
+let crawler = require('../crawler')
+let db = require('../db')
+let email = require('../email')
 
 crawler.crawl()
 db.emailScammers()

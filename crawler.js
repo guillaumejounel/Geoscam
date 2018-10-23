@@ -26,9 +26,9 @@ module.exports = {
             let nbEmails = 0
             while (match != null) {
                 let email = match[1]
-                db.saveScammer(process.env.EMAIL_DEV, (err) => {
+                db.saveScammer(email, (err) => {
                     if (err) { if (err.code != 11000) return console.error(err); return }
-                    console.log(process.env.EMAIL_DEV + " saved to database")
+                    console.log(email + " saved to database")
                     nbEmails += 1
                 })
                 match = myRegexp.exec(body);

@@ -11,11 +11,10 @@ app.get('/', function(req, res) {
 })
 
 app.get("/image/:tagId", function(req, res) {
+    var img = fs.readFileSync('./pixel.png')
+    res.writeHead(200, {'Content-Type': 'image/gif' })
+    res.end(img, 'binary')
     db.isScammerId(req.params.tagId, ()=> {
-        var img = fs.readFileSync('./pixel.png')
-        res.writeHead(200, {'Content-Type': 'image/gif' })
-        res.end(img, 'binary')
-
         let agent = req.headers['user-agent']
         let lang = req.headers['accept-language']
         let ip = (req.headers['x-forwarded-for'] || '').split(',').pop()

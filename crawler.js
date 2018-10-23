@@ -10,6 +10,10 @@ let opts = {
     timeout: timeoutInMilliseconds
 }
 
+//TODO: Use an array of URL/patterns/kind (db?)
+//TODO: Check email pattern
+//TODO: Alert when no new emails for x hours
+
 module.exports = {
     crawl: function () {
         request(opts, function (err, res, body) {
@@ -29,7 +33,6 @@ module.exports = {
                 })
                 match = myRegexp.exec(body);
             }
-            console.log(nbEmails + " email addresses crawled!")
         })
     }
 };

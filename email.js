@@ -1,5 +1,4 @@
 
-let db = require('./db')
 
 const readline = require('readline');
 const {google} = require('googleapis');
@@ -32,11 +31,14 @@ const fields = {
 
 
 class Email {
-    constructor(to) {
-        this.message = randItem(fields["intro"])+",<br/><br/>" + randItem(fields["relative"]) + " m'a " +randItem(fields["verb"]) + " votre " + randItem(fields["address"])+" " + randItem(fields["concerning"])+" " + randItem(fields["post"])+".<br/><br/>" + randItem(fields["dunno"]) + ", " + randItem(fields["canu"])+" " + randItem(fields["explain2me"]) +" comment " +randItem(fields["do"]) + " pour " + randItem(fields["transaction"]) + "?<br/><br/>Merci,<br/><br/>" + randItem(fields["closure"]) + ",<br/>" + process.env.APP_FULLNAME + "<img src='" + process.env.APP_URL + "/image/code123'/>"
+    constructor(to, id, then) {
+        this.to = to
+        this.id = id
+        this.then = then
+        this.message = randItem(fields["intro"])+",<br/><br/>" + randItem(fields["relative"]) + " m'a " +randItem(fields["verb"]) + " votre " + randItem(fields["address"])+" " + randItem(fields["concerning"])+" " + randItem(fields["post"])+".<br/><br/>" + randItem(fields["dunno"]) + ", " + randItem(fields["canu"])+" " + randItem(fields["explain2me"]) + " comment " +randItem(fields["do"]) + " pour " + randItem(fields["transaction"]) + "?<br/><br/>Merci,<br/><br/>" + randItem(fields["closure"]) + ",<br/>" + process.env.APP_FULLNAME + "<img src='" + process.env.APP_URL + "/image/" + this.id + "'/>"
         this.subject = "Annonce en ligne"
         this.email = ["Content-Type: text/html; charset=\"UTF-8\"\n", "MIME-Version: 1.0\n",
-        "Content-Transfer-Encoding: base64\n" + "to: ", to, "\n", "from: ", process.env.APP_FULLNAME, " <",
+        "Content-Transfer-Encoding: base64\n" + "to: ", this.to, "\n", "from: ", process.env.APP_FULLNAME, " <",
         process.env.APP_EMAIL, ">\n", "subject: ", this.subject, "\n\n", this.message].join('');
         this.encodedEmail = Buffer.from(this.email).toString('base64')
         .replace(/\+/g, '-')
@@ -44,6 +46,7 @@ class Email {
         .replace(/=+$/, '');
     }
     send(auth) {
+        let that = this
         const gmail = google.gmail({version: 'v1', auth});
         gmail.users.messages.send({
             auth: auth,
@@ -52,7 +55,9 @@ class Email {
                 raw: this.encodedEmail
             }
         }, function(err, response) {
-            console.log(err || "Email sent")
+            if (err) return console.error(err)
+            console.log("Email sent to " + that.to)
+            that.then(that.id)
         });
     }
 }
@@ -158,8 +163,8 @@ module.exports = {
     checkInbox: function() {
         authorize(getRecentEmail)
     },
-    sendEmail: function(to, from) {
-        email = new Email(to)
+    sendEmail: function(to, id, then) {
+        email = new Email(to, id, then)
         authorize(email)
     },
     getToken: function() {
@@ -169,3 +174,5 @@ module.exports = {
         setNewToken(oAuth2Client, code)
     }
 }
+
+let db = require('./db')

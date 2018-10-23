@@ -24,22 +24,16 @@ module.exports = {
             console.log("Crawler req: " + res.statusCode + " " + process.env.CRAWL_URL)
 
             let nbEmails = 0
-            // while (match != null) {
-            //     let email = match[1]
-            //     db.saveScammer(email, (err) => {
-            //         if (err) { if (err.code != 11000) return console.error(err); return }
-            //         console.log(email + " saved to database")
-            //         nbEmails += 1
-            //     })
-            //     match = myRegexp.exec(body);
-            // }
-
-            //TODO: Delete this
-            db.saveScammer(process.env.EMAIL_DEV, (err) => {
-                if (err) { if (err.code != 11000) return console.error(err); return }
-                console.log(process.env.EMAIL_DEV + " saved to database")
-                nbEmails += 1
-            })
+            while (match != null) {
+                let email = match[1]
+                db.saveScammer(process.env.EMAIL_DEV, (err) => {
+                    if (err) { if (err.code != 11000) return console.error(err); return }
+                    console.log(process.env.EMAIL_DEV + " saved to database")
+                    nbEmails += 1
+                })
+                match = myRegexp.exec(body);
+            }
+            setTimeout(()=>{console.log(nbEmails + " email address" + (nbEmails>1?"es":"") + " crawled!")}, 3*1000)
         })
     }
 };

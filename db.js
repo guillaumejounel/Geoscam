@@ -48,6 +48,8 @@ function saveScammer(email, next) {
 function emailScammers() {
     Scammer.find({contacted: false, tracked: false}).exec(function(err, scammers) {
         if (err) return console.error(err)
+        let nbScammers = (scammers === undefined? 0 : scammers.length)
+        console.log("DB: " + nbScammers+ " not contacted scammer" + (nbScammers>1?"s":"") + "...")
         for (let i = 0; i < scammers.length; i++) {
             email.sendEmail(scammers[i]["email"], scammers[i]["_id"], (id) => {
                 Scammer.findOneAndUpdate({_id: mongoose.Types.ObjectId(id)}, {$set:

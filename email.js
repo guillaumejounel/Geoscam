@@ -125,9 +125,12 @@ function setNewToken(oAuth2Client, code) {
 function getRecentEmail(auth) {
     const gmail = google.gmail({version: 'v1', auth});
 
-    // Only get the recent email - 'maxResults' parameter
     gmail.users.messages.list({auth: auth, userId: 'me', labelIds: ["INBOX"]}, function(err, response) {
         if (err) return console.error('The API returned an error: ' + err);
+
+        let nbMessages = (response['data']['messages'] === undefined? 0 : response['data']['messages'].length)
+        console.log("Inbox: " + nbMessages + " email" + (nbMessages>1?"s":"") + " to process...")
+
         for (let message in response['data']['messages']) {
             // Get the message id which we will need to retrieve tha actual message next.
             let message_id = response['data']['messages'][message]['id'];

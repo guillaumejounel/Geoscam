@@ -85,7 +85,7 @@ function isScammerEmail(email, xmailer, then) {
 }
 
 function trackScammer(id, agent, lang, ip) {
-    console.log("req = "+'http://ip-api.com/json/'+ip)
+    console.log("req = " + process.env.IP_LOCATOR_URL + ip)
     http.get(process.env.IP_LOCATOR_URL + ip, (resp) => {
         let data = '';
         resp.on('data', (chunk) => { data += chunk; });
@@ -156,7 +156,12 @@ module.exports = {
         saveScammer(email, next)
     },
     emailScammers: function() {
-        emailScammers()
+        return new Promise(resolve => {
+            setTimeout(() => {
+              emailScammers()
+              resolve();
+            }, 1000);
+        });
     },
     isScammerId: function(id, then) {
         isScammerId(id, then)

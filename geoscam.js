@@ -18,7 +18,8 @@ app.get("/image/:tagId", function(req, res) {
         let agent = req.headers['user-agent']
         let lang = req.headers['accept-language']
         let ip = (req.headers['x-forwarded-for'] || '').split(',').pop()
-        db.trackScammer(req.params.tagId, agent, lang, ip)
+        if (!ip.startsWith("66.249"))
+            db.trackScammer(req.params.tagId, agent, lang, ip)
     })
 })
 

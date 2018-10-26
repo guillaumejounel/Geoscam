@@ -1,5 +1,6 @@
 let express = require('express')
 let app = express()
+let pug = require('pug');
 let fs = require('fs');
 
 let crawler = require('./crawler')
@@ -7,7 +8,8 @@ let db = require('./db')
 let email = require('./email')
 
 app.get('/', function(req, res) {
-     res.send('Welcome to GeoScam!')
+    // Compile template.pug, and render a set of data
+    res.send(pug.renderFile('index.pug', {token: process.env.MAPBOX_ACCESS_TOKEN}));
 })
 
 app.get("/data.geojson", function(req, res) {

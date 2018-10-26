@@ -147,7 +147,7 @@ function retrieveToken(next) {
 }
 
 function getData(then) {
-    Scammer.find({loc: {"$ne": { "coordinates" : [ 0, 0 ], "type" : "Point" }}}, {loc:1}).exec((err, res)=> {
+    Scammer.find({"tracked": true}, {loc:1}).exec((err, res)=> {
         if (err) return console.error(err)
         then(res)
     });

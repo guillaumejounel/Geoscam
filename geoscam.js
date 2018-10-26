@@ -18,7 +18,7 @@ app.get("/data.geojson", function(req, res) {
         dataJson = '{"type":"FeatureCollection","features": ['
         for(let i in data) {
             if (i > 0) dataJson += ','
-            dataJson += '{"type": "Feature", "geometry": { "type": "Point", "coordinates": [' + data[i].loc.coordinates + ']}}'
+            dataJson += '{"type": "Feature", "geometry": { "type": "Point", "coordinates": [' + data[i].loc.coordinates[1] + ',' + data[i].loc.coordinates[0] + ']}}'
         }
         dataJson += ']}'
         res.send(dataJson)

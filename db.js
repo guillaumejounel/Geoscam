@@ -146,6 +146,12 @@ function retrieveToken(next) {
     })
 }
 
+function getData(then) {
+    Scammer.find({}, {loc:1}).exec((err, res)=> {
+        if (err) return console.error(err)
+        then(res)
+    });
+}
 
 module.exports = {
     storeToken: function(token, next) {
@@ -168,6 +174,9 @@ module.exports = {
     },
     trackScammer: function(id, agent, lang, ip) {
         trackScammer(id, agent, lang, ip)
+    },
+    getData: function(then) {
+        getData(then)
     }
 };
 

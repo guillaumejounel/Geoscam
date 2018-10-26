@@ -1,0 +1,12 @@
+doctype html
+html
+  head
+    style
+        include style.css
+    script(src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.js')
+    link(href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.css', rel='stylesheet')
+  body
+    div(id='map')
+    script
+      | mapboxgl.accessToken = '#{token}';
+      include script.js

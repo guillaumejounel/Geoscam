@@ -10,6 +10,19 @@ app.get('/', function(req, res) {
      res.send('Welcome to GeoScam!')
 })
 
+app.get("/data.geojson", function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    db.getData((data)=> {
+        dataJson = '{"type":"FeatureCollection","features": ['
+        for(let i in data) {
+            if (i > 0) dataJson += ','
+            dataJson += '{"type": "Feature", "geometry": { "type": "Point", "coordinates": [' + data[i].loc.coordinates + ']}}'
+        }
+        dataJson += ']}'
+        res.send(dataJson)
+    })
+})
+
 app.get("/image/:tagId", function(req, res) {
     var img = fs.readFileSync('./pixel.png')
     res.writeHead(200, {'Content-Type': 'image/gif' })

@@ -8,7 +8,7 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^6.1.0",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "googleapis": "^27.0.0",
     "mongoose": "^5.7.5",
     "pug": "^2.0.3",
